@@ -1,6 +1,6 @@
 {
   "name": "本地记账本-轻量级pwa应用，包含数据分析，便于记账分析,",
-  "short_name": "fundnote",
+  "short_name": "FundNote",
   "description": "轻量级记账应用，包含数据分析，便于记账分析",
   "start_url": "/fundnote/",                
   "display": "standalone",
@@ -10,12 +10,12 @@
   "scope": "/fundnote/",                     
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192' rx='20'/%3E%3Ctext x='96' y='120' font-size='80' text-anchor='middle' fill='white'%3EW%3C/text%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192' rx='20'/%3E%3Ctext x='96' y='120' font-size='80' text-anchor='middle' fill='white'%3EF%3C/text%3E%3C/svg%3E",
       "sizes": "192x192",
       "type": "image/svg+xml"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512' rx='40'/%3E%3Ctext x='256' y='320' font-size='200' text-anchor='middle' fill='white'%3EW%3C/text%3E%3C/svg%3E",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512' rx='40'/%3E%3Ctext x='256' y='320' font-size='200' text-anchor='middle' fill='white'%3EF%3C/text%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml"
     }
