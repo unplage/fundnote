@@ -3534,8 +3534,12 @@
 				    amountInput.addEventListener('blur', () => {
 				        let val = amountInput.value.trim();
 				        if (val === '') return;
-				        let num = parseFloat(val);
-				        if (isNaN(num)) {
+				        
+				        // 判断是否包含运算符（+ - * /）
+				        const hasOperator = /[+\-*/]/.test(val);
+				        
+				        if (hasOperator) {
+				            // 包含运算符，尝试计算表达式
 				            const clean = val.replace(/\s/g, '');
 				            if (/^[0-9+\-*/().]+$/.test(clean)) {
 				                try {
@@ -3555,7 +3559,14 @@
 				                this.showToast('请输入数字或简单表达式，如 12.5+3.2');
 				            }
 				        } else {
-				            amountInput.value = num.toFixed(2);
+				            // 不包含运算符，尝试解析为数字
+				            let num = parseFloat(val);
+				            if (!isNaN(num)) {
+				                amountInput.value = num.toFixed(2);
+				            } else {
+				                amountInput.value = '';
+				                this.showToast('请输入有效金额');
+				            }
 				        }
 				    });
 				}
