@@ -3528,7 +3528,37 @@
 
                 // 保存按钮
                 document.getElementById('saveBtn').addEventListener('click', () => this.saveRecord());
-
+				// 金额输入框支持算术表达式（如 1+1 → 2.00）
+				const amountInput = document.getElementById('amountInput');
+				if (amountInput) {
+				    amountInput.addEventListener('blur', () => {
+				        let val = amountInput.value.trim();
+				        if (val === '') return;
+				        let num = parseFloat(val);
+				        if (isNaN(num)) {
+				            const clean = val.replace(/\s/g, '');
+				            if (/^[0-9+\-*/().]+$/.test(clean)) {
+				                try {
+				                    const result = Function('"use strict"; return (' + clean + ')')();
+				                    if (typeof result === 'number' && isFinite(result) && result >= 0) {
+				                        amountInput.value = Math.round(result * 100) / 100;
+				                    } else {
+				                        amountInput.value = '';
+				                        this.showToast('表达式结果无效');
+				                    }
+				                } catch (e) {
+				                    amountInput.value = '';
+				                    this.showToast('表达式错误，如 1+1');
+				                }
+				            } else {
+				                amountInput.value = '';
+				                this.showToast('请输入数字或简单表达式，如 12.5+3.2');
+				            }
+				        } else {
+				            amountInput.value = num.toFixed(2);
+				        }
+				    });
+				}
                 // 导航切换
                 document.querySelectorAll('.nav-item').forEach(btn => {
                     btn.addEventListener('click', (e) => {
