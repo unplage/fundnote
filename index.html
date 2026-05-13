@@ -1919,6 +1919,44 @@
             color: #ef4444;
             background: #fee2e2;
         }
+		/* 确保根元素和容器高度足够 */
+		html, body {
+		    height: 100%;
+		    margin: 0;
+		    padding: 0;
+		}
+		.app-container {
+		    min-height: 100vh;   /* 确保容器至少撑满视口 */
+		    display: flex;
+		    flex-direction: column;
+		}
+		.page-content {
+		    flex: 1;             /* 让内容区域自动填充剩余空间 */
+		}
+		
+		/* 修复底部导航栏固定问题 */
+		.bottom-nav {
+		    position: fixed !important;
+		    bottom: 0 !important;
+		    left: 0 !important;
+		    right: 0 !important;
+		    transform: none !important;
+		    width: 100% !important;
+		    max-width: 414px !important;
+		    margin: 0 auto !important;
+		    background: rgba(255, 255, 255, 0.95);
+		    backdrop-filter: blur(10px);
+		    border-top: 1px solid rgba(0, 0, 0, 0.05);
+		    display: flex;
+		    padding: 8px 0 20px;
+		    z-index: 1000;
+		    box-sizing: border-box;
+		}
+		
+		/* 为页面内容预留底部空间，避免被导航栏遮挡 */
+		.page {
+		    padding-bottom: 70px;
+		}
     </style>
 <base target="_blank">
 </head>
