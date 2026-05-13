@@ -3155,7 +3155,7 @@
                     }
                 });
 
-                const dates = Object.keys(dailyData).sort();
+                const dates = Object.keys(dailyData).sort((a, b) => new Date(a) - new Date(b));
                 const incomeData = dates.map(d => dailyData[d].income);
                 const expenseData = dates.map(d => dailyData[d].expense);
 
