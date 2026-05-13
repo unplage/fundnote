@@ -4416,15 +4416,14 @@
                     page.classList.toggle('active', page.id === pageName + 'Page');
                 });
 
-                if (pageName === 'stats') {
-                    this.updateStats(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
-                    this.renderCategoryRanking(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
-                    setTimeout(() => this.chartManager.updateAllCharts(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate), 100);
-                } else if (pageName === 'records') {
-                    this.recordsPage = 1;
-                    this.renderRecords();
-                    this.updateCategoryFilter();
-                }
+				if (pageName === 'stats') {
+				    this.updateStats(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
+				    this.renderCategoryRanking(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
+				    setTimeout(() => {
+				        this.chartManager.updateAllCharts(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
+				        this.chartManager.resize();   // 添加这一行
+				    }, 100);
+				}
             }
 
             async renderRecords() {
