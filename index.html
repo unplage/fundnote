@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>海豚记账本 - 专业记账软件</title>
-	<link rel="manifest" href="./manifest.json">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
@@ -1914,6 +1913,7 @@
             background: #fee2e2;
         }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="app-container">
@@ -3059,42 +3059,59 @@
                 });
             }
 
-            async importRecords(newRecords) {
-                return new Promise((resolve, reject) => {
-                    const transaction = this.db.transaction(['records'], 'readwrite');
-                    const store = transaction.objectStore('records');
-                    
-                    let successCount = 0;
-                    let errorCount = 0;
-                    
-                    // 为每条记录添加ID和时间戳
-                    newRecords.forEach(record => {
-                        if (!record.id) record.id = Date.now() + Math.random();
-                        if (!record.timestamp) record.timestamp = new Date().toISOString();
-                        
-                        const request = store.add(record);
-                        
-                        request.onsuccess = () => {
-                            successCount++;
-                        };
-                        
-                        request.onerror = () => {
-                            errorCount++;
-                        };
-                    });
-                    
-                    transaction.oncomplete = () => {
-                        // 重新加载记录
-                        this.loadRecords().then(() => {
-                            resolve({ successCount, errorCount });
-                        });
-                    };
-                    
-                    transaction.onerror = (event) => {
-                        reject(event.target.error);
-                    };
-                });
-            }
+			async importRecords(newRecords) {
+				return new Promise((resolve, reject) => {
+					const transaction = this.db.transaction(['records'], 'readwrite');
+					const store = transaction.objectStore('records');
+					
+					let successCount = 0;
+					let errorCount = 0;
+					let duplicateCount = 0;
+					
+					// 为每条记录添加ID和时间戳（如果没有的话）
+					newRecords.forEach(record => {
+						if (!record.id) record.id = Date.now() + Math.random() + successCount; // 确保唯一
+						if (!record.timestamp) record.timestamp = new Date().toISOString();
+						
+						// 使用 put 而不是 add，这样如果记录已存在就更新，不存在就插入
+						const request = store.put(record);
+						
+						request.onsuccess = () => {
+							successCount++;
+						};
+						
+						request.onerror = (event) => {
+							// 如果是重复键错误，我们仍然可以处理
+							if (event.target.error.name === 'ConstraintError') {
+								// 可以尝试给记录生成新ID并重试
+								record.id = Date.now() + Math.random() + errorCount;
+								const retryRequest = store.put(record);
+								
+								retryRequest.onsuccess = () => {
+									successCount++;
+								};
+								
+								retryRequest.onerror = () => {
+									errorCount++;
+								};
+							} else {
+								errorCount++;
+							}
+						};
+					});
+					
+					transaction.oncomplete = () => {
+						// 重新加载记录
+						this.loadRecords().then(() => {
+							resolve({ successCount, errorCount });
+						});
+					};
+					
+					transaction.onerror = (event) => {
+						reject(event.target.error);
+					};
+				});
+			}
         }
 
         // ============ 图表统计类 ============
@@ -3380,69 +3397,101 @@
                 link.click();
             }
 
-            async importFromJSON(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const data = JSON.parse(e.target.result);
-                            if (data.records && Array.isArray(data.records)) {
-                                resolve({ 
-                                    records: data.records, 
-                                    categories: data.customCategories || null,
-                                    budget: data.budget || 0
-                                });
-                            } else {
-                                reject('无效的数据格式');
-                            }
-                        } catch (error) {
-                            reject('JSON解析失败');
-                        }
-                    };
-                    reader.readAsText(file);
-                });
-            }
+			async importFromJSON(file) {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = (e) => {
+						try {
+							const data = JSON.parse(e.target.result);
+							if (data.records && Array.isArray(data.records)) {
+								// 确保每条记录都有唯一ID
+								const records = data.records.map((record, index) => {
+									if (!record.id) {
+										// 生成基于时间戳的ID
+										record.id = Date.now() + Math.random() + index;
+									}
+									if (!record.timestamp) {
+										record.timestamp = new Date().toISOString();
+									}
+									return record;
+								});
+								
+								resolve({ 
+									records: records, 
+									categories: data.customCategories || null,
+									budget: data.budget || 0
+								});
+							} else {
+								reject('无效的数据格式');
+							}
+						} catch (error) {
+							reject('JSON解析失败: ' + error.message);
+						}
+					};
+					reader.readAsText(file);
+				});
+			}
 
-            async importFromCSV(file) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const lines = e.target.result.split('\n').filter(line => line.trim());
-                            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-                            
-                            const records = [];
-                            for (let i = 1; i < lines.length; i++) {
-                                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-                                const record = {
-                                    id: Date.now() + Math.random(),
-                                    timestamp: new Date().toISOString(),
-                                    date: new Date(values[0]).toISOString() || new Date().toISOString(),
-                                    type: values[1] === '支出' ? 'expense' : 'income',
-                                    category: values[2] || '其他',
-                                    amount: parseFloat(values[3]) || 0,
-                                    description: values[4] || ''
-                                };
-                                records.push(record);
-                            }
-                            resolve({ records, categories: null, budget: 0 });
-                        } catch (error) {
-                            reject('CSV解析失败');
-                        }
-                    };
-                    reader.readAsText(file);
-                });
-            }
+			async importFromCSV(file) {
+				return new Promise((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onload = (e) => {
+						try {
+							const lines = e.target.result.split('\n').filter(line => line.trim());
+							const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+							
+							const records = [];
+							for (let i = 1; i < lines.length; i++) {
+								const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+								const record = {
+									id: Date.now() + Math.random() + i, // 生成唯一ID
+									timestamp: new Date().toISOString(),
+									date: new Date(values[0]).toISOString() || new Date().toISOString(),
+									type: values[1] === '支出' ? 'expense' : 'income',
+									category: values[2] || '其他',
+									amount: parseFloat(values[3]) || 0,
+									description: values[4] || ''
+								};
+								records.push(record);
+							}
+							resolve({ records, categories: null, budget: 0 });
+						} catch (error) {
+							reject('CSV解析失败: ' + error.message);
+						}
+					};
+					reader.readAsText(file, 'utf-8');
+				});
+			}
 
-            async mergeRecords(newRecords) {
-                const existingRecords = await this.db.getRecords();
-                const existingIds = new Set(existingRecords.map(r => r.id));
-                const filtered = newRecords.filter(r => !existingIds.has(r.id));
-                
-                await this.db.importRecords(filtered);
-                
-                return { imported: filtered.length, total: newRecords.length };
-            }
+			async mergeRecords(newRecords) {
+				return new Promise(async (resolve, reject) => {
+					try {
+						// 获取现有记录
+						const existingRecords = await this.db.getRecords();
+						const existingIds = new Set(existingRecords.map(r => r.id));
+						
+						// 过滤掉已经存在的记录
+						const filtered = newRecords.filter(r => !existingIds.has(r.id));
+						
+						// 如果没有新记录需要导入
+						if (filtered.length === 0) {
+							resolve({ imported: 0, total: newRecords.length, duplicates: newRecords.length });
+							return;
+						}
+						
+						// 导入新记录
+						const result = await this.db.importRecords(filtered);
+						resolve({ 
+							imported: result.successCount, 
+							total: newRecords.length, 
+							duplicates: newRecords.length - filtered.length,
+							errors: result.errorCount 
+						});
+					} catch (error) {
+						reject(error);
+					}
+				});
+			}
 
             async mergeCategories(newCategories) {
                 if (!newCategories) return { imported: 0, total: 0 };
@@ -3531,45 +3580,46 @@
 				// 金额输入框支持算术表达式（如 1+1 → 2.00）
 				const amountInput = document.getElementById('amountInput');
 				if (amountInput) {
-				    amountInput.addEventListener('blur', () => {
-				        let val = amountInput.value.trim();
-				        if (val === '') return;
-				        
-				        // 判断是否包含运算符（+ - * /）
-				        const hasOperator = /[+\-*/]/.test(val);
-				        
-				        if (hasOperator) {
-				            // 包含运算符，尝试计算表达式
-				            const clean = val.replace(/\s/g, '');
-				            if (/^[0-9+\-*/().]+$/.test(clean)) {
-				                try {
-				                    const result = Function('"use strict"; return (' + clean + ')')();
-				                    if (typeof result === 'number' && isFinite(result) && result >= 0) {
-				                        amountInput.value = Math.round(result * 100) / 100;
-				                    } else {
-				                        amountInput.value = '';
-				                        this.showToast('表达式结果无效');
-				                    }
-				                } catch (e) {
-				                    amountInput.value = '';
-				                    this.showToast('表达式错误，如 1+1');
-				                }
-				            } else {
-				                amountInput.value = '';
-				                this.showToast('请输入数字或简单表达式，如 12.5+3.2');
-				            }
-				        } else {
-				            // 不包含运算符，尝试解析为数字
-				            let num = parseFloat(val);
-				            if (!isNaN(num)) {
-				                amountInput.value = num.toFixed(2);
-				            } else {
-				                amountInput.value = '';
-				                this.showToast('请输入有效金额');
-				            }
-				        }
-				    });
+					amountInput.addEventListener('blur', () => {
+						let val = amountInput.value.trim();
+						if (val === '') return;
+						
+						// 判断是否包含运算符（+ - * /）
+						const hasOperator = /[+\-*/]/.test(val);
+						
+						if (hasOperator) {
+							// 包含运算符，尝试计算表达式
+							const clean = val.replace(/\s/g, '');
+							if (/^[0-9+\-*/().]+$/.test(clean)) {
+								try {
+									const result = Function('"use strict"; return (' + clean + ')')();
+									if (typeof result === 'number' && isFinite(result) && result >= 0) {
+										amountInput.value = Math.round(result * 100) / 100;
+									} else {
+										amountInput.value = '';
+										this.showToast('表达式结果无效');
+									}
+								} catch (e) {
+									amountInput.value = '';
+									this.showToast('表达式错误，如 1+1');
+								}
+							} else {
+								amountInput.value = '';
+								this.showToast('请输入数字或简单表达式，如 12.5+3.2');
+							}
+						} else {
+							// 不包含运算符，尝试解析为数字
+							let num = parseFloat(val);
+							if (!isNaN(num)) {
+								amountInput.value = num.toFixed(2);
+							} else {
+								amountInput.value = '';
+								this.showToast('请输入有效金额');
+							}
+						}
+					});
 				}
+
                 // 导航切换
                 document.querySelectorAll('.nav-item').forEach(btn => {
                     btn.addEventListener('click', (e) => {
@@ -3776,39 +3826,56 @@
                 });
 
                 document.getElementById('cancelImport').addEventListener('click', () => this.closeModals());
-                document.getElementById('confirmImport').addEventListener('click', async () => {
-                    const file = document.getElementById('importFileInput').files[0];
-                    if (!file) return;
+				document.getElementById('confirmImport').addEventListener('click', async () => {
+					const file = document.getElementById('importFileInput').files[0];
+					if (!file) return;
 
-                    this.showLoading(true);
-                    try {
-                        let result;
-                        if (file.name.endsWith('.json')) {
-                            result = await this.exportManager.importFromJSON(file);
-                        } else if (file.name.endsWith('.csv')) {
-                            result = await this.exportManager.importFromCSV(file);
-                        }
-                        
-                        const recordResult = await this.exportManager.mergeRecords(result.records);
-                        const catResult = result.categories ? await this.exportManager.mergeCategories(result.categories) : { imported: 0 };
-                        const budgetResult = await this.exportManager.mergeBudget(result.budget);
-                        
-                        this.closeModals();
-                        this.showToast(`成功导入 ${recordResult.imported} 条记录${catResult.imported ? '和 ' + catResult.imported + ' 个分类' : ''}${budgetResult ? '及预算设置' : ''}`);
-                        
-                        // 刷新数据
-                        await this.updateStats(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
-                        await this.renderCategoryRanking(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
-                        await this.renderRecentRecords();
-                        await this.renderRecords();
-                        this.renderCategories();
-                        this.chartManager.updateAllCharts(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
-                    } catch (error) {
-                        this.showToast('导入失败：' + error);
-                    } finally {
-                        this.showLoading(false);
-                    }
-                });
+					this.showLoading(true);
+					try {
+						let result;
+						if (file.name.endsWith('.json')) {
+							result = await this.exportManager.importFromJSON(file);
+						} else if (file.name.endsWith('.csv')) {
+							result = await this.exportManager.importFromCSV(file);
+						}
+						
+						const recordResult = await this.exportManager.mergeRecords(result.records);
+						const catResult = result.categories ? await this.exportManager.mergeCategories(result.categories) : { imported: 0 };
+						const budgetResult = await this.exportManager.mergeBudget(result.budget);
+						
+						this.closeModals();
+						
+						// 更详细的导入结果提示
+						let message = `成功导入 ${recordResult.imported} 条记录`;
+						if (recordResult.duplicates > 0) {
+							message += `，跳过了 ${recordResult.duplicates} 条重复记录`;
+						}
+						if (recordResult.errors > 0) {
+							message += `，${recordResult.errors} 条记录导入失败`;
+						}
+						if (catResult.imported > 0) {
+							message += ` 和 ${catResult.imported} 个分类`;
+						}
+						if (budgetResult) {
+							message += ' 及预算设置';
+						}
+						
+						this.showToast(message);
+						
+						// 刷新数据
+						await this.updateStats(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
+						await this.renderCategoryRanking(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
+						await this.renderRecentRecords();
+						await this.renderRecords();
+						this.renderCategories();
+						this.chartManager.updateAllCharts(this.chartManager.currentPeriod, this.chartManager.customStartDate, this.chartManager.customEndDate);
+					} catch (error) {
+						console.error('导入失败:', error);
+						this.showToast('导入失败：' + (error.message || '文件格式不正确或数据已存在'));
+					} finally {
+						this.showLoading(false);
+					}
+				});
 
                 // 清空数据
                 document.getElementById('clearDataBtn').addEventListener('click', async () => {
@@ -4642,13 +4709,13 @@
     </script>
 	<script>
 	  if ('serviceWorker' in navigator) {
-	    // 注意：如果站点在子目录（如 /project/），注册路径需要包含子目录前缀
-	    // 一般使用相对路径 './sv.js' 或绝对路径 '/project/sv.js'
-	    navigator.serviceWorker.register('./sv.js').then(reg => {
-	      console.log('Service Worker 注册成功，作用域:', reg.scope);
-	    }).catch(err => {
-	      console.error('Service Worker 注册失败:', err);
-	    });
+		// 注意：如果站点在子目录（如 /project/），注册路径需要包含子目录前缀
+		// 一般使用相对路径 './sv.js' 或绝对路径 '/project/sv.js'
+		navigator.serviceWorker.register('./sv.js').then(reg => {
+		  console.log('Service Worker 注册成功，作用域:', reg.scope);
+		}).catch(err => {
+		  console.error('Service Worker 注册失败:', err);
+		});
 	  }
 	</script>
 </body>
