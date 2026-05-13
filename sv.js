@@ -4,7 +4,7 @@
 // - 静态资源 (js,css,图片,字体等)：缓存优先 (Cache First)，缓存缺失时请求网络并缓存
 // - 同源请求有效，跨域请求不处理
 
-const CACHE_NAME = 'gh-pages-cache-v1';      // 缓存版本，修改后会自动更新
+const CACHE_NAME = 'gh-pages-cache-v2';      // 缓存版本，修改后会自动更新
 const STATIC_EXTENSIONS = ['js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'woff', 'woff2', 'ttf', 'eot'];
 
 // 判断是否为静态资源（基于扩展名）
