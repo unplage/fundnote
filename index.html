@@ -1967,6 +1967,62 @@
 		.page {
 		    padding-bottom: 0;
 		}
+		/* 全局防止横向滚动 */
+		body, .app-container, .page, .page-content, .accounting-form, .recent-list, .category-grid, .recent-item {
+		    overflow-x: hidden;
+		    max-width: 100%;
+		}
+		
+		/* 修复最近记录区域文字溢出 */
+		.recent-item-info {
+		    flex: 1;
+		    min-width: 0;          /* 允许收缩父容器 */
+		}
+		.recent-item-details {
+		    flex: 1;
+		    min-width: 0;
+		    overflow: hidden;
+		}
+		.recent-item-details h4,
+		.recent-item-details p {
+		    white-space: nowrap;
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		}
+		
+		/* 修复分类按钮文字溢出 */
+		.category-btn {
+		    min-width: 0;           /* 允许收缩 */
+		    padding: 10px 2px;      /* 减少内边距 */
+		}
+		.category-btn span {
+		    white-space: nowrap;
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		    max-width: 100%;
+		    display: block;
+		}
+		
+		/* 确保金额输入框不溢出 */
+		.amount-input {
+		    width: 100%;
+		}
+		.amount-input input {
+		    width: 100%;
+		    min-width: 0;
+		    box-sizing: border-box;
+		}
+		
+		/* 底部导航栏内部项目不溢出 */
+		.nav-item {
+		    min-width: 0;
+		    flex: 1;
+		    text-align: center;
+		}
+		.nav-item span {
+		    white-space: nowrap;
+		    font-size: 11px;
+		}
     </style>
 <base target="_blank">
 </head>
