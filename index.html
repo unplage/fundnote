@@ -790,36 +790,43 @@
         }
 
         /* 统计概览卡片 */
-        .stats-overview {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+		/* 统计概览卡片 - 自适应一行显示 */
+		.stats-overview {
+		    display: grid;
+		    grid-template-columns: repeat(3, 1fr);
+		    gap: 10px;           /* 原15px，适当减小 */
+		    margin-bottom: 20px;
+		    width: 100%;
+		    overflow: hidden;
+		}
+		
+		.overview-card {
+		    background: white;
+		    padding: 12px 6px;   /* 减小内边距 */
+		    border-radius: 16px;
+		    text-align: center;
+		    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+		    transition: transform 0.3s;
+		    min-width: 0;        /* 防止溢出 */
+		    word-break: break-word;
+		}
+		
+		.overview-label {
+		    font-size: 12px;     /* 原14px，稍小 */
+		    color: #64748b;
+		    margin-bottom: 6px;
+		}
+		
+		.overview-value {
+		    font-size: 20px;     /* 原24px，减小 */
+		    font-weight: 600;
+		}
 
-        .overview-card {
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s;
-        }
 
         .overview-card:hover {
             transform: translateY(-5px);
         }
 
-        .overview-label {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
-
-        .overview-value {
-            font-size: 24px;
-            font-weight: 600;
-        }
 
         .overview-value.income {
             color: #10b981;
