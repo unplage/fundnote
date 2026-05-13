@@ -1919,27 +1919,34 @@
             color: #ef4444;
             background: #fee2e2;
         }
-		/* 确保根元素和容器高度撑满视口 */
+		/* 基础高度修正 */
 		html, body {
 		    height: 100%;
 		    margin: 0;
 		    padding: 0;
-		}
-		.app-container {
-		    min-height: 100vh;
-		    position: relative;      /* 为绝对定位的导航栏提供参照 */
-		    display: flex;
-		    flex-direction: column;
-		    padding-bottom: 70px;    /* 预留底部空间，避免内容被导航栏遮挡 */
-		    box-sizing: border-box;
-		}
-		.page-content {
-		    flex: 1;                 /* 撑满剩余空间 */
+		    overflow-x: hidden;
 		}
 		
-		/* 底部导航栏改为绝对定位，相对于 .app-container 底部 */
+		/* 使用动态视口高度（适配移动端地址栏） */
+		.app-container {
+		    min-height: 100dvh;           /* 优先使用 dvh，回退到 vh */
+		    min-height: 100vh;            /* 兼容不支持 dvh 的浏览器 */
+		    display: flex;
+		    flex-direction: column;
+		    position: relative;
+		    background: #f8f9fc;
+		}
+		
+		/* 页面内容区域可滚动，并预留底部空间避免被导航栏遮挡 */
+		.page-content {
+		    flex: 1;
+		    padding-bottom: 80px;         /* 为底部固定导航栏预留空间 */
+		    overflow-y: auto;
+		}
+		
+		/* 底部导航栏固定到视口底部 */
 		.bottom-nav {
-		    position: absolute !important;
+		    position: fixed !important;
 		    bottom: 0 !important;
 		    left: 0 !important;
 		    right: 0 !important;
@@ -1951,12 +1958,12 @@
 		    backdrop-filter: blur(10px);
 		    border-top: 1px solid rgba(0, 0, 0, 0.05);
 		    display: flex;
-		    padding: 8px 0 20px;
+		    padding: 8px 0 calc(20px + env(safe-area-inset-bottom, 0px)); /* 兼容全面屏 */
 		    z-index: 1000;
 		    box-sizing: border-box;
 		}
 		
-		/* 移除之前为 .page 添加的 padding-bottom（避免重复） */
+		/* 各个页面内容底部不再额外预留空间（已在 .page-content 统一预留） */
 		.page {
 		    padding-bottom: 0;
 		}
