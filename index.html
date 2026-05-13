@@ -3555,7 +3555,11 @@
                     this.updateTime();
                     this.initDateInput();
                     setInterval(() => this.updateTime(), 1000);
-                    setTimeout(() => this.chartManager.init(), 100);
+                    
+					setTimeout(() => {
+					    this.chartManager.updateAllCharts(...);
+					    this.chartManager.resize();  // 新增显式 resize
+					}, 100);
                     window.addEventListener('resize', () => this.chartManager.resize());
                 } catch (error) {
                     console.error('应用初始化失败:', error);
