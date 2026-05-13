@@ -3558,7 +3558,7 @@
                     
 					setTimeout(() => {
 					    this.chartManager.updateAllCharts(...);
-					    this.chartManager.resize();  // 新增显式 resize
+					    this.chartManager.resize();
 					}, 100);
                     window.addEventListener('resize', () => this.chartManager.resize());
                 } catch (error) {
