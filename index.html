@@ -1919,24 +1919,27 @@
             color: #ef4444;
             background: #fee2e2;
         }
-		/* 确保根元素和容器高度足够 */
+		/* 确保根元素和容器高度撑满视口 */
 		html, body {
 		    height: 100%;
 		    margin: 0;
 		    padding: 0;
 		}
 		.app-container {
-		    min-height: 100vh;   /* 确保容器至少撑满视口 */
+		    min-height: 100vh;
+		    position: relative;      /* 为绝对定位的导航栏提供参照 */
 		    display: flex;
 		    flex-direction: column;
+		    padding-bottom: 70px;    /* 预留底部空间，避免内容被导航栏遮挡 */
+		    box-sizing: border-box;
 		}
 		.page-content {
-		    flex: 1;             /* 让内容区域自动填充剩余空间 */
+		    flex: 1;                 /* 撑满剩余空间 */
 		}
 		
-		/* 修复底部导航栏固定问题 */
+		/* 底部导航栏改为绝对定位，相对于 .app-container 底部 */
 		.bottom-nav {
-		    position: fixed !important;
+		    position: absolute !important;
 		    bottom: 0 !important;
 		    left: 0 !important;
 		    right: 0 !important;
@@ -1953,9 +1956,9 @@
 		    box-sizing: border-box;
 		}
 		
-		/* 为页面内容预留底部空间，避免被导航栏遮挡 */
+		/* 移除之前为 .page 添加的 padding-bottom（避免重复） */
 		.page {
-		    padding-bottom: 70px;
+		    padding-bottom: 0;
 		}
     </style>
 <base target="_blank">
