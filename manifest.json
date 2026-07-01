@@ -1,5 +1,5 @@
 {
-  "name": "本地记账本-轻量级pwa应用，包含数据分析，便于记账分析,",
+  "name": "本地记账本-轻量级pwa应用，包含数据分析，便于记账分析",
   "short_name": "FundNote",
   "description": "轻量级记账应用，包含数据分析，便于记账分析",
   "start_url": "/fundnote/",                
