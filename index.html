@@ -76,6 +76,30 @@
             --shadow-color: rgba(0, 0, 0, 0.4);
             color-scheme: dark;
         }
+        @media (prefers-color-scheme: dark) {
+            html:not([data-theme]) {
+                --bg: #111318;
+                --bg-2: #0d0f13;
+                --bg-soft: #1a1d24;
+                --bg-soft-2: #1e222b;
+                --card-bg: #1e222b;
+                --border: #2c313c;
+                --border-soft: #262b34;
+                --text: #e2e8f0;
+                --text-heading: #f1f5f9;
+                --text-strong: #cbd5e1;
+                --text-tertiary: #94a3b8;
+                --text-secondary: #94a3b8;
+                --text-muted: #64748b;
+                --accent-soft: rgba(102, 126, 234, 0.15);
+                --body-gradient: linear-gradient(135deg, #111318 0%, #0d0f13 100%);
+                --status-bg: rgba(30, 34, 43, 0.85);
+                --nav-bg: rgba(30, 34, 43, 0.95);
+                --loading-bg: rgba(17, 19, 24, 0.9);
+                --shadow-color: rgba(0, 0, 0, 0.4);
+                color-scheme: dark;
+            }
+        }
 
         /* 原有样式保持不变，只添加新增的样式 */
         
@@ -2659,12 +2683,13 @@
                         </div>
                         <div class="settings-item">
                             <div class="settings-info">
-                                <div class="settings-title">深色模式</div>
-                                <div class="settings-desc">切换深色/浅色外观</div>
+                                <div class="settings-title">主题颜色</div>
+                                <div class="settings-desc">切换深色/浅色/跟随系统</div>
                             </div>
                             <select class="settings-select" id="themeSelect">
                                 <option value="light">浅色</option>
                                 <option value="dark">深色</option>
+                                <option value="system">跟随系统</option>
                             </select>
                         </div>
                         <div class="settings-item">
@@ -3017,6 +3042,9 @@
             }
             return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
         }
+
+        // 浮点数精度修正：将金额四舍五入到两位小数
+        function round2(x) { return Math.round(x * 100) / 100; }
 
         // ============ IndexedDB存储类 ============
         class IndexedDBAccountingDB {
@@ -3534,8 +3562,8 @@
                     return recordDate >= startDate && recordDate <= endDate;
                 });
 
-                const income = periodRecords.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0);
-                const expense = periodRecords.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
+                const income = round2(periodRecords.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0));
+                const expense = round2(periodRecords.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0));
                 
                 return { income, expense, records: periodRecords, startDate, endDate };
             }
@@ -3554,11 +3582,11 @@
                             icon: this.categories[type].find(c => c.name === r.category)?.icon || 'fa-question'
                         });
                     }
-                    categoryMap.get(r.category).amount += r.amount;
+                    categoryMap.get(r.category).amount = round2(categoryMap.get(r.category).amount + r.amount);
                     categoryMap.get(r.category).count += 1;
                 });
 
-                const total = filteredRecords.reduce((sum, r) => sum + r.amount, 0);
+                const total = round2(filteredRecords.reduce((sum, r) => sum + r.amount, 0));
 
                 return Array.from(categoryMap.values())
                     .sort((a, b) => b.amount - a.amount)
@@ -3614,8 +3642,8 @@
                     });
                     
                     months.push(`${current.getFullYear()}年${current.getMonth() + 1}月`);
-                    incomeData.push(monthRecords.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0));
-                    expenseData.push(monthRecords.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0));
+                    incomeData.push(round2(monthRecords.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0)));
+                    expenseData.push(round2(monthRecords.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0)));
                     
                     current.setMonth(current.getMonth() + 1);
                 }
@@ -3645,8 +3673,8 @@
                                rd.getDate() === d.getDate();
                     });
                     labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-                    incomeData.push(dayRecords.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0));
-                    expenseData.push(dayRecords.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0));
+                    incomeData.push(round2(dayRecords.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0)));
+                    expenseData.push(round2(dayRecords.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0)));
                 }
 
                 return { labels, incomeData, expenseData };
@@ -3772,12 +3800,19 @@
                 this.chartBorderColor = this.getChartBorderColor();
             }
 
+            _isDark() {
+                const attr = document.documentElement.getAttribute('data-theme');
+                if (attr === 'dark') return true;
+                if (attr === 'light') return false;
+                return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+
             getChartTextColor() {
-                return document.documentElement.getAttribute('data-theme') === 'dark' ? '#cbd5e1' : '#334155';
+                return this._isDark() ? '#cbd5e1' : '#334155';
             }
 
             getChartBorderColor() {
-                return document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e222b' : '#ffffff';
+                return this._isDark() ? '#1e222b' : '#ffffff';
             }
 
             applyTheme() {
@@ -3849,9 +3884,9 @@
                         dailyData[date] = { income: 0, expense: 0 };
                     }
                     if (r.type === 'income') {
-                        dailyData[date].income += r.amount;
+                        dailyData[date].income = round2(dailyData[date].income + r.amount);
                     } else {
-                        dailyData[date].expense += r.amount;
+                        dailyData[date].expense = round2(dailyData[date].expense + r.amount);
                     }
                 });
 
@@ -3865,8 +3900,8 @@
                         const d = new Date(dateStr);
                         const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
                         if (!monthly[key]) monthly[key] = { income: 0, expense: 0 };
-                        monthly[key].income += dailyData[dateStr].income;
-                        monthly[key].expense += dailyData[dateStr].expense;
+                        monthly[key].income = round2(monthly[key].income + dailyData[dateStr].income);
+                        monthly[key].expense = round2(monthly[key].expense + dailyData[dateStr].expense);
                     });
                     const mKeys = Object.keys(monthly).sort((a, b) => {
                         const [ay, am] = a.split('-').map(Number);
@@ -3960,7 +3995,9 @@
                     textStyle: { color: this.chartTextColor },
                     tooltip: {
                         trigger: 'item',
-                        formatter: '{a} <br/>{b}: ¥{c} ({d}%)'
+                        formatter: function(params) {
+                            return params.seriesName + ' <br/>' + params.name + ': ¥' + params.value.toFixed(2) + ' (' + params.percent + '%)';
+                        }
                     },
                     series: [
                         {
@@ -3983,7 +4020,9 @@
                             },
                             label: {
                                 show: true,
-                                formatter: '{b}\n¥{c}',
+                                formatter: function(params) {
+                                    return params.name + '\n¥' + params.value.toFixed(2);
+                                },
                                 color: this.chartTextColor
                             }
                         }
@@ -4261,7 +4300,7 @@
 									date: new Date(values[0]).toISOString() || new Date().toISOString(),
 									type: values[1] === '支出' ? 'expense' : 'income',
 									category: values[2] || '其他',
-									amount: parseFloat(values[3]) || 0,
+                                amount: round2(parseFloat(values[3]) || 0),
 									description: values[4] || ''
 								};
 								records.push(record);
@@ -4541,11 +4580,11 @@
                     this.showToast('货币单位已更改（仅显示，不影响数据）');
                 });
 
-                // 深色模式切换
+                // 主题颜色切换
                 const themeSelect = document.getElementById('themeSelect');
                 if (themeSelect) {
                     const currentTheme = (function () {
-                        try { return localStorage.getItem('fundnote_theme') || 'light'; } catch (err) { return 'light'; }
+                        try { return localStorage.getItem('fundnote_theme') || 'system'; } catch (err) { return 'system'; }
                     })();
                     themeSelect.value = currentTheme;
                     themeSelect.addEventListener('change', (e) => {
@@ -4609,9 +4648,16 @@
 
             // ===== 主题切换 =====
             applyTheme(theme) {
-                document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
-                const metaTheme = document.querySelector('meta[name="theme-color"]');
-                if (metaTheme) metaTheme.setAttribute('content', theme === 'dark' ? '#111318' : '#667eea');
+                if (theme === 'system') {
+                    document.documentElement.removeAttribute('data-theme');
+                    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    const metaTheme = document.querySelector('meta[name="theme-color"]');
+                    if (metaTheme) metaTheme.setAttribute('content', isDark ? '#111318' : '#667eea');
+                } else {
+                    document.documentElement.setAttribute('data-theme', theme);
+                    const metaTheme = document.querySelector('meta[name="theme-color"]');
+                    if (metaTheme) metaTheme.setAttribute('content', theme === 'dark' ? '#111318' : '#667eea');
+                }
                 try { localStorage.setItem('fundnote_theme', theme); } catch (err) {}
             }
 
@@ -4881,7 +4927,7 @@
             }
 
             async saveRecord() {
-                const amount = parseFloat(document.getElementById('amountInput').value);
+                const amount = round2(parseFloat(document.getElementById('amountInput').value));
                 const description = document.getElementById('descriptionInput').value;
                 const date = document.getElementById('dateInput').value;
 
@@ -4995,7 +5041,7 @@
                 const recordId = this.db.editingRecordId;
                 if (!recordId) return;
 
-                const amount = parseFloat(document.getElementById('editAmountInput').value);
+                const amount = round2(parseFloat(document.getElementById('editAmountInput').value));
                 const date = document.getElementById('editDateInput').value;
                 const description = document.getElementById('editDescriptionInput').value;
                 
@@ -5137,7 +5183,7 @@
                     if (document.getElementById('statsPage').classList.contains('active')) {
                         document.getElementById('totalIncome').textContent = `¥${stats.income.toFixed(2)}`;
                         document.getElementById('totalExpense').textContent = `¥${stats.expense.toFixed(2)}`;
-                        document.getElementById('totalBalance').textContent = `¥${(stats.income - stats.expense).toFixed(2)}`;
+                        document.getElementById('totalBalance').textContent = `¥${round2(stats.income - stats.expense).toFixed(2)}`;
                         await this.renderMetrics(stats, period, customStart, customEnd);
                     }
                 } catch (error) {
@@ -5159,8 +5205,8 @@
                 fill.style.width = pct + '%';
                 fill.classList.toggle('over', monthExpense > budget);
                 const text = monthExpense > budget
-                    ? `已超支 ¥${(monthExpense - budget).toFixed(2)}`
-                    : `剩余 ¥${(budget - monthExpense).toFixed(2)}`;
+                    ? `已超支 ¥${round2(monthExpense - budget).toFixed(2)}`
+                    : `剩余 ¥${round2(budget - monthExpense).toFixed(2)}`;
                 document.getElementById('budgetProgressText').textContent =
                     `¥${monthExpense.toFixed(2)} / ¥${budget.toFixed(2)} · ${text}`;
             }
@@ -5184,7 +5230,7 @@
                 // 日均支出
                 const msPerDay = 86400000;
                 const days = Math.max(1, Math.round((stats.endDate - stats.startDate) / msPerDay) + 1);
-                document.getElementById('metricDailyAvg').textContent = `¥${(stats.expense / days).toFixed(2)}`;
+                document.getElementById('metricDailyAvg').textContent = `¥${round2(stats.expense / days).toFixed(2)}`;
 
                 // 最大单笔支出
                 const expenses = stats.records.filter(r => r.type === 'expense');
@@ -5312,8 +5358,8 @@
                     document.getElementById('detailPeriod').textContent = periodText[period] || '本月';
                     
                     // 计算统计数据
-                    const total = records.reduce((sum, r) => sum + r.amount, 0);
-                    const avg = records.length > 0 ? total / records.length : 0;
+                    const total = round2(records.reduce((sum, r) => sum + r.amount, 0));
+                    const avg = records.length > 0 ? round2(total / records.length) : 0;
                     
                     // 更新汇总信息
                     document.getElementById('detailCount').textContent = records.length + ' 笔';
@@ -5834,13 +5880,33 @@
         // ============ 初始化应用 ============
         document.addEventListener('DOMContentLoaded', () => {
             // 应用已保存的主题偏好
-            let savedTheme = 'light';
-            try { savedTheme = localStorage.getItem('fundnote_theme') || 'light'; } catch (err) {}
-            document.documentElement.setAttribute('data-theme', savedTheme === 'dark' ? 'dark' : 'light');
+            let savedTheme = 'system';
+            try { savedTheme = localStorage.getItem('fundnote_theme') || 'system'; } catch (err) {}
+            if (savedTheme === 'system') {
+                document.documentElement.removeAttribute('data-theme');
+                const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (metaTheme) metaTheme.setAttribute('content', isDark ? '#111318' : '#667eea');
+            } else {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                const metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (metaTheme) metaTheme.setAttribute('content', savedTheme === 'dark' ? '#111318' : '#667eea');
+            }
             const themeSelect = document.getElementById('themeSelect');
             if (themeSelect) themeSelect.value = savedTheme;
-            const metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) metaTheme.setAttribute('content', savedTheme === 'dark' ? '#111318' : '#667eea');
+
+            // 监听系统主题变化（仅在跟随系统模式下响应）
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                    let currentTheme = 'system';
+                    try { currentTheme = localStorage.getItem('fundnote_theme') || 'system'; } catch (err) {}
+                    if (currentTheme === 'system') {
+                        const metaTheme = document.querySelector('meta[name="theme-color"]');
+                        if (metaTheme) metaTheme.setAttribute('content', e.matches ? '#111318' : '#667eea');
+                        if (window.app && window.app.chartManager) window.app.chartManager.applyTheme();
+                    }
+                });
+            }
 
             window.app = new AccountingApp();
             PrivacyLock.init();
