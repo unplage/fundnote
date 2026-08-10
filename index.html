@@ -1158,8 +1158,14 @@
         }
 
         /* 分类明细模态框 */
+        .category-detail-modal {
+            overflow-y: auto;
+            align-items: flex-start;
+            padding: 10px 0;
+        }
         .category-detail-modal .modal-content {
-            max-height: 90vh;
+            max-height: 85vh;
+            margin: auto;
         }
 
         .category-detail-header {
@@ -3995,6 +4001,7 @@
                     textStyle: { color: this.chartTextColor },
                     tooltip: {
                         trigger: 'item',
+                        confine: true,
                         formatter: function(params) {
                             return params.seriesName + ' <br/>' + params.name + ': ¥' + params.value.toFixed(2) + ' (' + params.percent + '%)';
                         }
