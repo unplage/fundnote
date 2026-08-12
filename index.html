@@ -2278,14 +2278,6 @@
 		    color: var(--text-secondary);
 		    margin-bottom: 24px;
 		}
-		.lock-forgot {
-		    display: inline-block;
-		    margin-top: 18px;
-		    font-size: 12px;
-		    color: var(--text-muted);
-		    cursor: pointer;
-		    text-decoration: underline;
-		}
 
 		/* ===== PIN 输入 ===== */
 		.pin-display {
@@ -3028,7 +3020,6 @@
             <p class="lock-sub" id="lockMsg">请输入 PIN 码解锁</p>
             <div class="pin-display" id="lockPinDisplay"></div>
             <div class="pin-pad" id="lockPinPad"></div>
-            <span class="lock-forgot" id="lockForgot">忘记 PIN？重置后数据保留</span>
         </div>
     </div>
 
@@ -5871,14 +5862,6 @@
                         const fails = PinManager.registerFail();
                         document.getElementById('lockMsg').textContent =
                             `PIN 码错误，剩余 ${Math.max(0, PinManager.maxFails - fails)} 次机会`;
-                    }
-                });
-                document.getElementById('lockForgot').addEventListener('click', () => {
-                    if (confirm('重置将移除隐私锁，但不会删除任何记账数据。确定重置吗？')) {
-                        PinManager.clearPin();
-                        PinManager.unlockSession();
-                        overlay.classList.remove('show');
-                        if (window.app) window.app.refreshPinStatus();
                     }
                 });
             }

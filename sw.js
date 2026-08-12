@@ -6,7 +6,7 @@
 const BASE_PATH = self.location.pathname.replace(/[^/]+$/, '');
 // 项目标识：'/fundnote/' -> 'fundnote'，用于隔离不同项目的缓存
 const PROJECT_KEY = BASE_PATH.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'root';
-const CACHE_NAME = `pwa-cache-${PROJECT_KEY}-v3.5`;
+const CACHE_NAME = `pwa-cache-${PROJECT_KEY}-v3.6`;
 // 本项目的缓存前缀（用于清理旧缓存，且不影响同源其它项目）
 const PROJECT_PREFIX = `pwa-cache-${PROJECT_KEY}-`;
 
