@@ -6,7 +6,7 @@
 const BASE_PATH = self.location.pathname.replace(/[^/]+$/, '');
 // 项目标识：'/fundnote/' -> 'fundnote'，用于隔离不同项目的缓存
 const PROJECT_KEY = BASE_PATH.replace(/[^a-zA-Z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'root';
-const CACHE_NAME = `pwa-cache-${PROJECT_KEY}-v3.6`;
+const CACHE_NAME = `pwa-cache-${PROJECT_KEY}-v3.7`;
 // 本项目的缓存前缀（用于清理旧缓存，且不影响同源其它项目）
 const PROJECT_PREFIX = `pwa-cache-${PROJECT_KEY}-`;
 
@@ -16,6 +16,10 @@ const PRECACHE_URLS = [
   `${BASE_PATH}index.html`,
   `${BASE_PATH}clear.html`,
   `${BASE_PATH}manifest.json`,
+  `${BASE_PATH}icons/icon-192.png`,
+  `${BASE_PATH}icons/icon-512.png`,
+  `${BASE_PATH}icons/icon-maskable-512.png`,
+  `${BASE_PATH}icons/apple-touch-icon.png`,
   // 核心 CDN 资源：离线时图表/图标/字体也能正常工作
   'https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',

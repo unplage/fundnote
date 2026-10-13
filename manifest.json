@@ -4,20 +4,28 @@
   "description": "轻量级记账应用，包含数据分析，便于记账分析",
   "start_url": "/fundnote/",                
   "display": "standalone",
-  "background_color": "#f5f5f5", 
-  "theme_color": "#FF0000",
+  "background_color": "#f8f9fc", 
+  "theme_color": "#667eea",
   "orientation": "portrait",
   "scope": "/fundnote/",                     
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CAF50' width='192' height='192' rx='20'/%3E%3Ctext x='96' y='120' font-size='80' text-anchor='middle' fill='white'%3EF%3C/text%3E%3C/svg%3E",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512' rx='40'/%3E%3Ctext x='256' y='320' font-size='200' text-anchor='middle' fill='white'%3EF%3C/text%3E%3C/svg%3E",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
